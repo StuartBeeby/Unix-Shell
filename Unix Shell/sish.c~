@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include "histCountIncrement.c"
+#include "history.c"
+#include "cd.c"
+
+/*
+ * The best shell program ever
+ */
+ 
+
+ 
+ int main(int argc, char *argv[])
+ {
+	 char *output = "sish> ";
+	 int maxArguments = 500;
+	 char *arguments[maxArguments];
+ 
+	 int maxHist = 100;
+	 int histCount = 0;
+	 char *histArr[maxHist];
+	 
+	 for(int g = 0; g < 100; g++) {
+		 histArr[g] = "\0";
+	 }
+
+	 char *space = (" ");
+	 
+	 while(1) {
+		 
+		 printf(output);
+		 
+		 char *input = NULL;
+		 size_t capacity = 0;
+		 int length = getline(&input, &capacity, stdin);
+		 if (length == -1) {
+			perror("getline failed");
+			exit(EXIT_FAILURE);
+		 }	
+		 
+		 input[strlen(input) - 1] = 0;
+		 
+		 // Should be one line
+		 histArr[histCount] = input;
+		 histCountIncrement(&histCount);
+		 printf("%d",histCount);
+		 
+		 int i;
+		 char *str;
+		 char *saveptr;
+		 char *token;
+		 for (i = 1, str = input; ; i++, str = NULL) {
+			 token = strtok_r(str, space, &saveptr);
+			 if (token == NULL || i == maxArguments) {
+				 break;
+			 }
+			 
+			 arguments[i-1] = token;
+			 
+		 }
+		 if (strcmp(arguments[0], "exit") == 0) {
+			 exit(EXIT_SUCCESS);
+		 }
+		 
+		 if (strcmp(arguments[0], "history") == 0) {
+			 history(arguments, histArr, histCount - 1, maxHist);
+		 }
+		 
+		 if (strcmp(arguments[0], "cd") == 0) {
+			 cd(arguments[1]);
+		 }
+	 }
+ }
